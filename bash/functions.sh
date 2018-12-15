@@ -124,36 +124,10 @@ function CleanLogFile {
 }
 
 #################################################################################
-# Detect CPU Architecture.
-
-function Check_CPU () {
-    if [[ -z "${CPU_ARCHITECTURE}" ]] ; then
-        echo -en "\e[94m  Detecting CPU architecture...\e[97m"
-        export CPU_ARCHITECTURE=`uname -m | tr -d "\n\r"`
-    fi
-}
-
-#################################################################################
-# Detect Platform.
-
-function Check_Platform () {
-    if [[ -z "${HARDWARE_PLATFORM}" ]] ; then
-        echo -en "\e[94m  Detecting hardware platform...\e[97m"
-        if [[ `egrep -c "^Hardware.*: BCM" /proc/cpuinfo` -gt 0 ]] ; then
-            export HARDWARE_PLATFORM="RPI"
-        elif [[ `egrep -c "^Hardware.*: Allwinner sun4i/sun5i Families$" /proc/cpuinfo` -gt 0 ]] ; then
-            export HARDWARE_PLATFORM="CHIP"
-        else
-            export HARDWARE_PLATFORM="unknown"
-        fi
-    fi
-}
-
-#################################################################################
 # Detect Hardware Revision.
 
 function Check_Hardware () {
-    if [[ -z "${HARDWARE_REVISION}" ]] ; then
+    if [ -z "$HARDWARE_REVISION" ] ; then
         echo -en "\e[94m  Detecting Hardware revision...\e[97m"
         export HARDWARE_REVISION=`grep "^Revision" /proc/cpuinfo | awk '{print $3}'`
     fi
@@ -163,9 +137,9 @@ function Check_Hardware () {
 # Blacklist DVB-T drivers for RTL-SDR devices.
 
 function BlacklistModules {
-    if [[ ! -f /etc/modprobe.d/rtlsdr-blacklist.conf ]] || [[ `cat /etc/modprobe.d/rtlsdr-blacklist.conf | wc -l` -lt 9 ]] ; then
+    if [ ! -f /etc/modprobe.d/rtlsdr-blacklist.conf ] || [[ `cat /etc/modprobe.d/rtlsdr-blacklist.conf | wc -l` -lt 9 ]] ; then
         echo -en "\e[94m  Installing blacklist to prevent unwanted kernel modules from being loaded...\e[97m"
-        sudo tee ${RECEIVER_KERNEL_MODULE_BLACKLIST}  > /dev/null <<EOF
+        sudo tee $RECEIVER_KERNEL_MODULE_BLACKLIST  > /dev/null <<EOF
 blacklist dvb_usb_v2
 blacklist dvb_usb_rtl28xxu
 blacklist dvb_usb_rtl2830u
@@ -177,7 +151,7 @@ blacklist rtl2830
 blacklist rtl2832
 EOF
     else
-        echo -en "\e[94m  Kernel module blacklist already installed...\e[97m"
+        echo -en "\e[94m  Kernel module blacklist already written...\e[97m"
     fi
 }
 

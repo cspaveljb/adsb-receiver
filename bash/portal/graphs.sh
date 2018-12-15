@@ -31,27 +31,25 @@
 #                                                                                   #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-### VARIABLES
+## VARIABLES
 
-RECEIVER_ROOT_DIRECTORY="${PWD}"
-RECEIVER_BUILD_DIRECTORY="${RECEIVER_ROOT_DIRECTORY}/build"
-PORTAL_BUILD_DIRECTORY="${RECEIVER_BUILD_DIRECTORY}/portal"
+PORTAL_BUILD_DIRECTORY="$RECEIVER_BUILD_DIRECTORY/portal"
 
 COLLECTD_CONFIG="/etc/collectd/collectd.conf"
 COLLECTD_CRON_FILE="/etc/cron.d/adsb-receiver-performance-graphs"
 DUMP1090_MAX_RANGE_RRD="/var/lib/collectd/rrd/localhost/dump1090-localhost/dump1090_range-max_range.rrd"
 DUMP1090_MESSAGES_LOCAL_RRD="/var/lib/collectd/rrd/localhost/dump1090-localhost/dump1090_messages-local_accepted.rrd"
 
-### INCLUDE EXTERNAL SCRIPTS
+## INCLUDE EXTERNAL SCRIPTS
 
-source ${RECEIVER_BASH_DIRECTORY}/variables.sh
-source ${RECEIVER_BASH_DIRECTORY}/functions.sh
+source $RECEIVER_BASH_DIRECTORY/variables.sh
+source $RECEIVER_BASH_DIRECTORY/functions.sh
 
-if [[ "${RECEIVER_AUTOMATED_INSTALL}" = "true" ]] && [[ -s "${RECEIVER_CONFIGURATION_FILE}" ]] ; then
-    source ${RECEIVER_CONFIGURATION_FILE}
+if [ "$RECEIVER_AUTOMATED_INSTALL" = "true" ] && [ -s $RECEIVER_CONFIGURATION_FILE ] ; then
+    source $RECEIVER_CONFIGURATION_FILE
 fi
 
-### BEGIN SETUP
+## BEGIN SETUP
 
 echo -e ""
 echo -e "\e[95m  Setting up collectd performance graphs...\e[97m"
@@ -59,7 +57,7 @@ echo -e ""
 
 ## CONFIRM INSTALLED PACKAGES
 
-if [[ -z "${DUMP1090_INSTALLED}" ]] || [[ -z "${DUMP1090_FORK}" ]] ; then
+if [ -z $DUMP1090_INSTALLED ] || [ -z $DUMP1090_FORK ] ; then
     echo -e "\e[94m  Checking which dump1090 fork is installed...\e[97m"
     if [[ $(dpkg-query -W -f='${STATUS}' dump1090-mutability 2>/dev/null | grep -c "ok installed") -eq 1 ]] ; then
         DUMP1090_FORK="mutability"
@@ -70,24 +68,17 @@ if [[ -z "${DUMP1090_INSTALLED}" ]] || [[ -z "${DUMP1090_FORK}" ]] ; then
         DUMP1090_INSTALLED="true"
     fi
 fi
-if [[ -f "/etc/init.d/rtlsdr-ogn" ]] ; then
+if [ -f /etc/init.d/rtlsdr-ogn ] ; then
     RTLSDROGN_INSTALLED="true"
-fi
-
-## CONFIRM HARDWARE PLATFORM
-
-if [[ -z "${HARDWARE_PLATFORM}" ]] ; then
-    Check_Platform
-    echo -e ""
 fi
 
 ## MODIFY THE DUMP1090-MUTABILITY INIT SCRIPT TO MEASURE AND RETAIN NOISE DATA
 
-if [[ "${DUMP1090_INSTALLED}" = "true" ]] && [[ "${DUMP1090_FORK}" = "mutability" ]] ; then
+if [ "$DUMP1090_INSTALLED" = "true" ] && [ "$DUMP1090_FORK" = "mutability" ] ; then
     echo -e "\e[94m  Modifying the dump1090-mutability configuration file to add noise measurements...\e[97m"
     EXTRA_ARGS=`GetConfig "EXTRA_ARGS" "/etc/default/dump1090-mutability"`
     EXTRA_ARGS=$(sed -e 's/^[[:space:]]*//' <<<"EXTRA_ARGS --measure-noise")
-    ChangeConfig "EXTRA_ARGS" "${RECEIVER_LONGITUDE}" "/etc/default/dump1090-mutability"
+    ChangeConfig "EXTRA_ARGS" "$RECEIVER_LONGITUDE" "/etc/default/dump1090-mutability"
 
     echo -e "\e[94m  Reloading the systemd manager configuration...\e[97m"
     sudo systemctl daemon-reload
@@ -99,14 +90,14 @@ fi
 ## BACKUP AND REPLACE COLLECTD.CONF
 
 # Check if the collectd config file exists and if so back it up.
-if [[ -f "${COLLECTD_CONFIG}" ]] ; then
+if [[ -f "$COLLECTD_CONFIG" ]] ; then
     echo -e "\e[94m  Backing up the current collectd.conf file...\e[97m"
-    sudo cp ${COLLECTD_CONFIG} ${COLLECTD_CONFIG}.bak
+    sudo cp $COLLECTD_CONFIG ${COLLECTD_CONFIG}.bak
 fi
 
 # Generate new collectd config.
 echo -e "\e[94m  Replacing the current collectd.conf file...\e[97m"
-sudo tee ${COLLECTD_CONFIG} > /dev/null <<EOF
+sudo tee $COLLECTD_CONFIG > /dev/null <<EOF
 # Config file for collectd(1).
 
 ##############################################################################
@@ -129,8 +120,8 @@ WriteThreads 1
 EOF
 
 # Dump1090 specific values.
-if [[ "${DUMP1090_INSTALLED}" = "true" ]] ; then
-    sudo tee -a ${COLLECTD_CONFIG} > /dev/null <<EOF
+if [ "$DUMP1090_INSTALLED" = "true" ] ; then
+    sudo tee -a $COLLECTD_CONFIG > /dev/null <<EOF
 #----------------------------------------------------------------------------#
 # Added types for dump1090.                                                  #
 # Make sure the path to dump1090.db is correct.                              #
@@ -141,7 +132,7 @@ EOF
 fi
 
 # Config for all installations.
-sudo tee -a ${COLLECTD_CONFIG} > /dev/null <<EOF
+sudo tee -a $COLLECTD_CONFIG > /dev/null <<EOF
 ##############################################################################
 # Logging                                                                    #
 ##############################################################################
@@ -202,8 +193,8 @@ LoadPlugin curl
 EOF
 
 # Raspberry Pi specific values.
-if [[ "${HARDWARE_PLATFORM}" = "RPI" ]] ; then
-    sudo tee -a ${COLLECTD_CONFIG} > /dev/null <<EOF
+if [ "$RECEIVER_HARDWARE_PLATFORM" = "RPI" ] ; then
+    sudo tee -a $COLLECTD_CONFIG > /dev/null <<EOF
 <Plugin table>
 	<Table "/sys/class/thermal/thermal_zone0/temp">
 		Instance localhost
@@ -223,8 +214,8 @@ if [[ "${HARDWARE_PLATFORM}" = "RPI" ]] ; then
 
 EOF
 # CHIP specific values.
-elif [[ "${HARDWARE_PLATFORM}" = "CHIP" ]] ; then
-    sudo tee -a ${COLLECTD_CONFIG} > /dev/null <<EOF
+elif [ "$RECEIVER_HARDWARE_PLATFORM" = "CHIP" ] ; then
+    sudo tee -a $COLLECTD_CONFIG > /dev/null <<EOF
 <Plugin table>
         <Table "/sys/class/hwmon/hwmon0/temp1_input">
                 Instance localhost
@@ -246,8 +237,8 @@ EOF
 fi
 
 # Dump1090 specific values.
-if [[ "${DUMP1090_INSTALLED}" = "true" ]] ; then
-    sudo tee -a ${COLLECTD_CONFIG} > /dev/null <<EOF
+if [ "$DUMP1090_INSTALLED" = "true" ] ; then
+    sudo tee -a $COLLECTD_CONFIG > /dev/null <<EOF
 #----------------------------------------------------------------------------#
 # Configure the dump1090 python module.                                      #
 #                                                                            #
@@ -270,8 +261,8 @@ EOF
 fi
 
 # RTLSDR-OGN specific values.
-if [[ "${RTLSDROGN_INSTALLED}" = "true" ]] ; then
-    sudo tee -a ${COLLECTD_CONFIG} > /dev/null <<EOF
+if [ "$RTLSDROGN_INSTALLED" = "true" ] ; then
+    sudo tee -a $COLLECTD_CONFIG > /dev/null <<EOF
 #----------------------------------------------------------------------------#
 # RTLSDR-OGN Graphs                                                          #
 #----------------------------------------------------------------------------#
@@ -326,7 +317,7 @@ EOF
 fi
 
 # Remaining config for all installations.
-sudo tee -a ${COLLECTD_CONFIG} > /dev/null <<EOF
+sudo tee -a $COLLECTD_CONFIG > /dev/null <<EOF
 <Chain "PostCache">
 	<Rule>
 		<Match regex>
@@ -349,25 +340,25 @@ sudo service collectd force-reload
 
 ## EDIT CRONTAB
 
-if [[ ! -x "${PORTAL_BUILD_DIRECTORY}/graphs/make-collectd-graphs.sh" ]] ; then
+if [ ! -x $PORTAL_BUILD_DIRECTORY/graphs/make-collectd-graphs.sh ] ; then
     echo -e "\e[94m  Making the make-collectd-graphs.sh script executable...\e[97m"
-    chmod +x ${PORTAL_BUILD_DIRECTORY}/graphs/make-collectd-graphs.sh
+    chmod +x $PORTAL_BUILD_DIRECTORY/graphs/make-collectd-graphs.sh
 fi
 
 # The next block is temporary in order to insure this file is
 # deleted on older installation before the project renaming.
-if [[ -f "/etc/cron.d/adsb-feeder-performance-graphs" ]] ; then
+if [ -f /etc/cron.d/adsb-feeder-performance-graphs ] ; then
     echo -e "\e[94m  Removing outdated performance graphs cron file...\e[97m"
     sudo rm -f /etc/cron.d/adsb-feeder-performance-graphs
 fi
 
-if [[ -f "${COLLECTD_CRON_FILE}" ]] ; then
+if [ -f "$COLLECTD_CRON_FILE" ] ; then
     echo -e "\e[94m  Removing previously installed performance graphs cron file...\e[97m"
-    sudo rm -f ${COLLECTD_CRON_FILE}
+    sudo rm -f $COLLECTD_CRON_FILE
 fi
 
 echo -e "\e[94m  Adding performance graphs cron file...\e[97m"
-sudo tee ${COLLECTD_CRON_FILE} > /dev/null <<EOF
+sudo tee $COLLECTD_CRON_FILE > /dev/null <<EOF
 # Updates the portal's performance graphs.
 #
 # Every 5 minutes new hourly graphs are generated.
@@ -391,7 +382,7 @@ EOF
 if [ -f "/var/lib/collectd/rrd/localhost/dump1090-localhost/dump1090_range-max_range.rrd" ]; then
     if [[ `rrdinfo ${DUMP1090_MAX_RANGE_RRD} | grep -c "ds\[value\].max = 1.0000000000e+06"` -eq 0 ]] ; then
         echo -e "\e[94m  Removing 500km/270mi limit from max_range.rrd...\e[97m"
-        sudo rrdtool tune ${DUMP1090_MAX_RANGE_RRD} --maximum "value:1000000"
+        sudo rrdtool tune $DUMP1090_MAX_RANGE_RRD --maximum "value:1000000"
     fi
 fi
 
@@ -407,4 +398,4 @@ fi
 
 # Return to the project root directory.
 echo -e "\e[94m  Entering the ADS-B Receiver Project root directory...\e[97m"
-cd ${RECEIVER_ROOT_DIRECTORY}
+cd $RECEIVER_ROOT_DIRECTORY

@@ -46,14 +46,14 @@ clear
 
 ## VARIABLES
 
-RECEIVER_ROOT_DIRECTORY="${PWD}"
-RECEIVER_BASH_DIRECTORY="${RECEIVER_ROOT_DIRECTORY}/bash"
-RECEIVER_BUILD_DIRECTORY="${RECEIVER_ROOT_DIRECTORY}/build"
+RECEIVER_ROOT_DIRECTORY=$PWD
+RECEIVER_BASH_DIRECTORY="$RECEIVER_ROOT_DIRECTORY/bash"
+RECEIVER_BUILD_DIRECTORY="$RECEIVER_ROOT_DIRECTORY/build"
 
 ## INCLUDE EXTERNAL SCRIPTS
 
-source ${RECEIVER_BASH_DIRECTORY}/variables.sh
-source ${RECEIVER_BASH_DIRECTORY}/functions.sh
+source $RECEIVER_BASH_DIRECTORY/variables.sh
+source $RECEIVER_BASH_DIRECTORY/functions.sh
 
 echo -e ""
 echo -e "\e[91m  The ADS-B Receiver Project Image Preparation Script\e[97m"
@@ -92,9 +92,9 @@ sudo service udev restart
 BlacklistModules
 
 # Ask which version of dump1090 to install.
-DUMP1090OPTION=$(whiptail --backtitle "${RECEIVER_PROJECT_TITLE}" --title "Choose Dump1090 Version" --menu "Which version of dump1090 is to be installed?" 12 65 2 "dump1090-mutability" "(Mutability)" "dump1090-fa" "(FlightAware)" 3>&1 1>&2 2>&3)
+DUMP1090_OPTION=$(whiptail --backtitle "$RECEIVER_PROJECT_TITLE" --title "Choose Dump1090 Version" --menu "Which version of dump1090 is to be installed?" 12 65 2 "dump1090-mutability" "(Mutability)" "dump1090-fa" "(FlightAware)" 3>&1 1>&2 2>&3)
 
-case ${DUMP1090OPTION} in
+case $DUMP1090_OPTION in
     "dump1090-mutability")
         echo -e "\e[95m  Installing dump1090-mutability...\e[97m"
         echo -e ""
@@ -103,12 +103,12 @@ case ${DUMP1090OPTION} in
         echo -e ""
         echo -e "\e[95m  Installing dump1090-mutability...\e[97m"
         echo -e ""
-        mkdir -vp ${RECEIVER_BUILD_DIRECTORY}/dump1090-mutability
-        cd ${RECEIVER_BUILD_DIRECTORY}/dump1090-mutability 2>&1
+        mkdir -vp $RECEIVER_BUILD_DIRECTORY/dump1090-mutability
+        cd $RECEIVER_BUILD_DIRECTORY/dump1090-mutability 2>&1
         git clone https://github.com/mutability/dump1090.git
-        cd ${RECEIVER_BUILD_DIRECTORY}/dump1090-mutability/dump1090 2>&1
+        cd $RECEIVER_BUILD_DIRECTORY/dump1090-mutability/dump1090 2>&1
         dpkg-buildpackage -b
-        cd ${RECEIVER_BUILD_DIRECTORY}/dump1090-mutability 2>&1
+        cd $RECEIVER_BUILD_DIRECTORY/dump1090-mutability 2>&1
         sudo dpkg -i dump1090-mutability_1.15~dev_*.deb
         ;;
     "dump1090-fa")
@@ -141,12 +141,12 @@ case ${DUMP1090OPTION} in
         echo ""
         echo -e "\e[95m  Installing bladeRF...\e[97m"
         echo ""
-        mkdir -vp ${RECEIVER_BUILD_DIRECTORY}/bladeRF
-        cd ${RECEIVER_BUILD_DIRECTORY}/bladeRF 2>&1
+        mkdir -vp $RECEIVER_BUILD_DIRECTORY/bladeRF
+        cd $RECEIVER_BUILD_DIRECTORY/bladeRF 2>&1
         git clone https://github.com/Nuand/bladeRF.git
-        cd ${RECEIVER_BUILD_DIRECTORY}/bladeRF/bladeRF 2>&1
+        cd $RECEIVER_BUILD_DIRECTORY/bladeRF/bladeRF 2>&1
         dpkg-buildpackage -b
-        cd ${RECEIVER_BUILD_DIRECTORY}/bladeRF 2>&1
+        cd $RECEIVER_BUILD_DIRECTORY/bladeRF 2>&1
         sudo dpkg -i libbladerf1_*.deb
         sudo dpkg -i libbladerf-dev_*.deb
         sudo dpkg -i libbladerf-udev_*.deb
@@ -155,22 +155,25 @@ case ${DUMP1090OPTION} in
         echo -e ""
         echo -e "\e[95m  Installing dump1090-fa...\e[97m"
         echo -e ""
-        mkdir -vp ${RECEIVER_BUILD_DIRECTORY}/dump1090-fa
-        cd ${RECEIVER_BUILD_DIRECTORY}/dump1090-fa 2>&1
+        mkdir -vp $RECEIVER_BUILD_DIRECTORY/dump1090-fa
+        cd $RECEIVER_BUILD_DIRECTORY/dump1090-fa 2>&1
         git clone https://github.com/flightaware/dump1090.git
-        cd ${RECEIVER_BUILD_DIRECTORY}/dump1090-fa/dump1090 2>&1
+        cd $RECEIVER_BUILD_DIRECTORY/dump1090-fa/dump1090 2>&1
         dpkg-buildpackage -b
-        cd ${RECEIVER_BUILD_DIRECTORY}/dump1090-fa 2>&1
+        cd $RECEIVER_BUILD_DIRECTORY/dump1090-fa 2>&1
         sudo dpkg -i dump1090-fa_*.deb
 
         # PiAware
-        cd ${RECEIVER_BUILD_DIRECTORY} 2>&1
+        cd $RECEIVER_BUILD_DIRECTORY 2>&1
         git clone https://github.com/flightaware/piaware_builder.git
-        cd ${RECEIVER_BUILD_DIRECTORY}/piaware_builder 2>&1
+        cd $RECEIVER_BUILD_DIRECTORY/piaware_builder 2>&1
         ./sensible-build.sh jessie
-        cd ${RECEIVER_BUILD_DIRECTORY}/piaware_builder/package-jessie 2>&1
+        cd $RECEIVER_BUILD_DIRECTORY/piaware_builder/package-jessie 2>&1
         dpkg-buildpackage -b
-        sudo dpkg -i ${RECEIVER_BUILD_DIRECTORY}/piaware_builder/piaware_*.deb
+        sudo dpkg -i $RECEIVER_BUILD_DIRECTORY/piaware_builder/piaware_*.deb
+
+        # Remove the assigned feeder-id
+        #piaware-config feeder-id *******************
         ;;
     *)
         # Nothing selected.
@@ -198,7 +201,7 @@ CheckPackage php7.0-json
 ## TOUCH THE IMAGE FILE
 
 echo -e "\e[95m  Touching the \"image\" file...\e[97m"
-cd ${RECEIVER_ROOT_DIRECTORY} 2>&1
+cd $RECEIVER_ROOT_DIRECTORY 2>&1
 touch image
 
 ## CHANGE THE PASSWORD FOR THE USER PI
