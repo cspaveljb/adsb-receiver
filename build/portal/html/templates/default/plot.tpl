@@ -174,8 +174,9 @@
         function drawNewMap(flightID, positions) {
 
             clearPaths();
-            clearMarkers(flightID);
+            // clearMarkers(flightID); // flightID is an exception
 
+            // Draw new path
              var flightPath = new google.maps.Polyline({
                 path: drawPath(positions),
                 geodesic: true,
@@ -185,9 +186,8 @@
             });
 
             flightPath.setMap(map); 
-
+            return flightPath;
         }
-
 
         {foreach page:flightPaths as flightPath}
         var startTime{flightPath->id} = dateFormat("{flightPath->startingTime}", "mmmm dd, yyyy 'at' h:MM TT");
@@ -218,11 +218,6 @@
             strokeWeight: ((pathsSeen == {flightPath->id}) ? 2 : 1),
             rotation: {flightPath->startingTrack}
           }
-        });
-
-        markerStart{flightPath->id}.addListener('click', function() { // green
-            infowindowStart{flightPath->id}.open(map, markerStart{flightPath->id});
-            drawNewMap({flightPath->id}, {flightPath->positions});
         });
 
         var finishTime{flightPath->id} = dateFormat("{flightPath->finishingTime}", "mmmm dd, yyyy 'at' h:MM TT");
@@ -258,7 +253,17 @@
 
         markerFinish{flightPath->id}.addListener('click', function() {
             infowindowFinish{flightPath->id}.open(map, markerFinish{flightPath->id});
+            closeAllInfo({flightPath->id});
+            flightPath{flightPath->id} = drawNewMap({flightPath->id}, {flightPath->positions});
         });
+
+        
+        markerStart{flightPath->id}.addListener('click', function() { // green
+            infowindowStart{flightPath->id}.open(map, markerStart{flightPath->id});
+            closeAllInfo({flightPath->id});
+            flightPath{flightPath->id} = drawNewMap({flightPath->id}, {flightPath->positions});
+        });
+
 
 
         var flightPath{flightPath->id} = new google.maps.Polyline({
@@ -273,10 +278,18 @@
 
 
         {/foreach}
-
         function clearPaths() {
             {foreach page:flightPaths as flightPath}
                 flightPath{flightPath->id}.setMap(null);
+            {/foreach}
+        }
+
+        function closeAllInfo(exceptID) {
+            {foreach page:flightPaths as flightPath}
+                if ({flightPath->id} !== exceptID) {
+                    infowindowStart{flightPath->id}.close();
+                    infowindowFinish{flightPath->id}.close();
+                }
             {/foreach}
         }
 
