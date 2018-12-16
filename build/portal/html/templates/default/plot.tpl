@@ -164,11 +164,30 @@
       function initMap() {
         var map = new google.maps.Map(document.getElementById('map'), {
           zoom: 7,
-          center: {lat: {setting:advancedMapCenterLatitude} || 32, lng: {setting:advancedMapCenterLongitude} || 34},
+          center: {lat: 32, lng: 34},
           mapTypeId: google.maps.MapTypeId.TERRAIN
         });
 
         var pathsSeen = {page:pathsSeen};
+
+
+        function drawNewMap(flightID, positions) {
+
+            clearPaths();
+            clearMarkers(flightID);
+
+             var flightPath = new google.maps.Polyline({
+                path: drawPath(positions),
+                geodesic: true,
+                strokeColor: 'blue',
+                strokeOpacity: 1,
+                strokeWeight: 2
+            });
+
+            flightPath.setMap(map); 
+
+        }
+
 
         {foreach page:flightPaths as flightPath}
         var startTime{flightPath->id} = dateFormat("{flightPath->startingTime}", "mmmm dd, yyyy 'at' h:MM TT");
@@ -201,8 +220,9 @@
           }
         });
 
-        markerStart{flightPath->id}.addListener('click', function() {
+        markerStart{flightPath->id}.addListener('click', function() { // green
             infowindowStart{flightPath->id}.open(map, markerStart{flightPath->id});
+            drawNewMap({flightPath->id}, {flightPath->positions});
         });
 
         var finishTime{flightPath->id} = dateFormat("{flightPath->finishingTime}", "mmmm dd, yyyy 'at' h:MM TT");
@@ -240,14 +260,9 @@
             infowindowFinish{flightPath->id}.open(map, markerFinish{flightPath->id});
         });
 
-        json = {flightPath->positions};
-        var thisPath = new Array();
-        for (var i = 0; i < json.length; i++) {
-            thisPath.push(new google.maps.LatLng(json[i].latitude, json[i].longitude));
-        }
 
         var flightPath{flightPath->id} = new google.maps.Polyline({
-          path: thisPath,
+          path: drawPath({flightPath->positions}),
           geodesic: true,
           strokeColor: 'blue',
           strokeOpacity: ((pathsSeen == {flightPath->id}) ? 1 : 0.3),
@@ -258,6 +273,30 @@
 
 
         {/foreach}
+
+        function clearPaths() {
+            {foreach page:flightPaths as flightPath}
+                flightPath{flightPath->id}.setMap(null);
+            {/foreach}
+        }
+
+        function clearMarkers(exceptID) {
+            {foreach page:flightPaths as flightPath}
+                if ({flightPath->id} !== exceptID) {
+                    markerStart{flightPath->id}.setMap(null);
+                    markerFinish{flightPath->id}.setMap(null);
+                }
+            {/foreach}
+        }
+
+        function drawPath(json) {
+            console.log(json);
+            var thisPath = new Array();
+            for (var i = 0; i < json.length; i++) {
+                thisPath.push(new google.maps.LatLng(json[i].latitude, json[i].longitude));
+            }
+            return thisPath;
+        }
 
         // Retain map state.
         loadMapState();
