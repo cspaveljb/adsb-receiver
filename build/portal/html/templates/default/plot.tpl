@@ -164,7 +164,7 @@
       function initMap() {
         var map = new google.maps.Map(document.getElementById('map'), {
           zoom: 7,
-          center: {lat: {setting:advancedMapCenterLatitude} || 32, lng: {setting:advancedMapCenterLongitude} || 34},
+          center: {lat: 32, lng: 34},
           mapTypeId: google.maps.MapTypeId.TERRAIN
         });
 
