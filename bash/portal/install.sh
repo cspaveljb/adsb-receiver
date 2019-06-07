@@ -274,7 +274,8 @@ CheckPackage libpython2.7
 # Install packages needed for advanced portal setups.
 if [ "$ADVANCED" = "true" ] ; then
     CheckPackage python-pyinotify
-    case "$DATABASE_ENGINE" in
+    CheckPackage python-apt
+    case "${DATABASEENGINE}" in
         "MySQL")
             CheckPackage mysql-client
             CheckPackage python-mysqldb
@@ -306,15 +307,19 @@ echo -e "\e[95m  Setting up the web portal...\e[97m"
 echo -e ""
 
 # If this is an existing Lite installation being upgraded backup the XML data files.
-if [ "$RECEIVER_PORTAL_INSTALLED" = "true" ] && [ "$ADVANCED" = "false" ] ; then
-    echo -e "\e[94m  Backing up the file $LIGHTTPD_DOCUMENT_ROOT/data/administrators.xml...\e[97m"
-    sudo mv $LIGHTTPD_DOCUMENT_ROOT/data/administrators.xml $LIGHTTPD_DOCUMENT_ROOT/data/administrators.backup.xml
-    echo -e "\e[94m  Backing up the file $LIGHTTPD_DOCUMENT_ROOT/data/blogPosts.xml...\e[97m"
-    sudo mv $LIGHTTPD_DOCUMENT_ROOT/data/blogPosts.xml $LIGHTTPD_DOCUMENT_ROOT/data/blogPosts.backup.xml
-    echo -e "\e[94m  Backing up the file $LIGHTTPD_DOCUMENT_ROOT/data/flightNotifications.xml...\e[97m"
-    sudo mv $LIGHTTPD_DOCUMENT_ROOT/data/flightNotifications.xml $LIGHTTPD_DOCUMENT_ROOT/data/flightNotifications.backup.xml
-    echo -e "\e[94m  Backing up the file $LIGHTTPD_DOCUMENT_ROOT/data/settings.xml...\e[97m"
-    sudo mv $LIGHTTPD_DOCUMENT_ROOT/data/settings.xml $LIGHTTPD_DOCUMENT_ROOT/data/settings.backup.xml
+if [[ "${RECEIVER_PORTAL_INSTALLED}" = "true" ]] && [[ "${ADVANCED}" = "false" ]] ; then
+    echo -e "\e[94m  Backing up the file ${LIGHTTPD_DOCUMENT_ROOT}/data/administrators.xml...\e[97m"
+    sudo mv ${LIGHTTPD_DOCUMENT_ROOT}/data/administrators.xml ${LIGHTTPD_DOCUMENT_ROOT}/data/administrators.backup.xml
+    echo -e "\e[94m  Backing up the file ${LIGHTTPD_DOCUMENT_ROOT}/data/blogPosts.xml...\e[97m"
+    sudo mv ${LIGHTTPD_DOCUMENT_ROOT}/data/blogPosts.xml ${LIGHTTPD_DOCUMENT_ROOT}/data/blogPosts.backup.xml
+    echo -e "\e[94m  Backing up the file ${LIGHTTPD_DOCUMENT_ROOT}/data/flightNotifications.xml...\e[97m"
+    sudo mv ${LIGHTTPD_DOCUMENT_ROOT}/data/flightNotifications.xml ${LIGHTTPD_DOCUMENT_ROOT}/data/flightNotifications.backup.xml
+    echo -e "\e[94m  Backing up the file ${LIGHTTPD_DOCUMENT_ROOT}/data/settings.xml...\e[97m"
+    sudo mv ${LIGHTTPD_DOCUMENT_ROOT}/data/settings.xml ${LIGHTTPD_DOCUMENT_ROOT}/data/settings.backup.xml
+    echo -e "\e[94m  Backing up the file ${LIGHTTPD_DOCUMENT_ROOT}/data/links.xml...\e[97m"
+    sudo mv ${LIGHTTPD_DOCUMENT_ROOT}/data/links.xml ${LIGHTTPD_DOCUMENT_ROOT}/data/links.backup.xml
+    echo -e "\e[94m  Backing up the file ${LIGHTTPD_DOCUMENT_ROOT}/data/notifications.xml...\e[97m"
+    sudo mv ${LIGHTTPD_DOCUMENT_ROOT}/data/notifications.xml ${LIGHTTPD_DOCUMENT_ROOT}/data/notifications.backup.xml
 fi
 
 if [ -f $LIGHTTPD_DOCUMENT_ROOT/index.lighttpd.html ]; then
@@ -326,15 +331,19 @@ echo -e "\e[94m  Placing portal files in Lighttpd's root directory...\e[97m"
 sudo cp -R $PORTAL_BUILD_DIRECTORY/html/* $LIGHTTPD_DOCUMENT_ROOT
 
 # If this is an existing installation being upgraded restore the original XML data files.
-if [ "$RECEIVER_PORTAL_INSTALLED" = "true" ] && [ "$ADVANCED" = "false" ] ; then
-    echo -e "\e[94m  Restoring the backup copy of the file $LIGHTTPD_DOCUMENT_ROOT/data/administrators.xml...\e[97m"
-    sudo mv $LIGHTTPD_DOCUMENT_ROOT/data/administrators.backup.xml $LIGHTTPD_DOCUMENT_ROOT/data/administrators.xml
-    echo -e "\e[94m  Restoring the backup copy of the file $LIGHTTPD_DOCUMENT_ROOT/data/blogPosts.xml...\e[97m"
-    sudo mv $LIGHTTPD_DOCUMENT_ROOT/data/blogPosts.backup.xml $LIGHTTPD_DOCUMENT_ROOT/data/blogPosts.xml
-    echo -e "\e[94m  Restoring the backup copy of the file $LIGHTTPD_DOCUMENT_ROOT/data/flightNotifications.xml...\e[97m"
-    sudo mv $LIGHTTPD_DOCUMENT_ROOT/data/flightNotifications.backup.xml $LIGHTTPD_DOCUMENT_ROOT/data/flightNotifications.xml
-    echo -e "\e[94m  Restoring the backup copy of the file $LIGHTTPD_DOCUMENT_ROOT/data/settings.xml...\e[97m"
-    sudo mv $LIGHTTPD_DOCUMENT_ROOT/data/settings.backup.xml $LIGHTTPD_DOCUMENT_ROOT/data/settings.xml
+if [[ "${RECEIVER_PORTAL_INSTALLED}" = "true" ]] && [[ "${ADVANCED}" = "false" ]] ; then
+    echo -e "\e[94m  Restoring the backup copy of the file ${LIGHTTPD_DOCUMENT_ROOT}/data/administrators.xml...\e[97m"
+    sudo mv ${LIGHTTPD_DOCUMENT_ROOT}/data/administrators.backup.xml ${LIGHTTPD_DOCUMENT_ROOT}/data/administrators.xml
+    echo -e "\e[94m  Restoring the backup copy of the file ${LIGHTTPD_DOCUMENT_ROOT}/data/blogPosts.xml...\e[97m"
+    sudo mv ${LIGHTTPD_DOCUMENT_ROOT}/data/blogPosts.backup.xml ${LIGHTTPD_DOCUMENT_ROOT}/data/blogPosts.xml
+    echo -e "\e[94m  Restoring the backup copy of the file ${LIGHTTPD_DOCUMENT_ROOT}/data/flightNotifications.xml...\e[97m"
+    sudo mv ${LIGHTTPD_DOCUMENT_ROOT}/data/flightNotifications.backup.xml ${LIGHTTPD_DOCUMENT_ROOT}/data/flightNotifications.xml
+    echo -e "\e[94m  Restoring the backup copy of the file ${LIGHTTPD_DOCUMENT_ROOT}/data/settings.xml...\e[97m"
+    sudo mv ${LIGHTTPD_DOCUMENT_ROOT}/data/settings.backup.xml ${LIGHTTPD_DOCUMENT_ROOT}/data/settings.xml
+    echo -e "\e[94m  Restoring the backup copy of the file ${LIGHTTPD_DOCUMENT_ROOT}/data/links.xml...\e[97m"
+    sudo mv ${LIGHTTPD_DOCUMENT_ROOT}/data/links.backup.xml ${LIGHTTPD_DOCUMENT_ROOT}/data/links.xml
+    echo -e "\e[94m  Restoring the backup copy of the file ${LIGHTTPD_DOCUMENT_ROOT}/data/notifications.xml...\e[97m"
+    sudo mv ${LIGHTTPD_DOCUMENT_ROOT}/data/notifications.backup.xml ${LIGHTTPD_DOCUMENT_ROOT}/data/notifications.xml
 fi
 
 # Set the proper permissions on certain portal directories.
